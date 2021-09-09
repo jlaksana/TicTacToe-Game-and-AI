@@ -31,15 +31,21 @@ class TicTacToe:
     def cur_capacity(self) -> int:
         return self.num_empty
 
-    def add_symbol(self, symbol: str) -> bool:
+    def add_at_selected(self, symbol: str):
         if self.is_full():
-            return False
+            return
 
         x, y = self.selected_pos    
 
         self.board[y][x] = symbol
         self.num_empty -= 1
-        return True
+
+    def add_symbol(self, symbol, x, y):
+        if self.is_full():
+            return
+
+        self.board[y][x] = symbol
+        self.num_empty -= 1
 
     def delete_symbol(self):
         x, y = self.selected_pos
@@ -72,6 +78,12 @@ class TicTacToe:
             return "D"
 
         return ""
+
+    def copy(self):
+        copy = TicTacToe()
+        copy.board = self.board.copy()
+        copy.num_empty = self.num_empty
+        return copy
 
     def draw(self):
         gap = Screen.LENGTH / TicTacToe.N
