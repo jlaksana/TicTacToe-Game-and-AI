@@ -1,5 +1,6 @@
 import math
 import pygame
+import time
 
 class Player:
     def __init__(self, symbol) -> None:
@@ -40,6 +41,7 @@ class AIPlayer(Player):
 
     def play(self, board) -> bool:
         copy = board.copy()
+        time.sleep(.5)
         i = self.minimax(copy, -math.inf, math.inf, True, 0)
         board.add_at_i(self.symbol,i)
         return True

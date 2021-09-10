@@ -12,6 +12,7 @@ Goal: Create a playable Tictactoe game with an unbeatable AI using the Minimax a
 
 """
 import pygame
+import time
 from players import HumanPlayer, AIPlayer
 
 pygame.init()
@@ -142,7 +143,7 @@ class Screen:
     def start_screen():
         pass
 
-    def display_winner():
+    def display_winner(winner:str):
         pass
 
     def display_turn(player):
@@ -151,43 +152,55 @@ class Screen:
 
 class Game:
     def __init__(self) -> None:
-        self.x_player = HumanPlayer("X")
-        self.o_player = AIPlayer("O")
+        self.player1 = HumanPlayer("X")
+        self.player2 = AIPlayer("O")
+        self.cur_player = self.player1
+        self.other_player = self.player2
 
     def set_players(self):
+        pass
         while True:
             Screen.fill()
             Screen.start_screen()
 
             # ask for one player or two 
 
-    def play(self):
-        pygame.display.set_caption("TICTACTOE")
-        board = TicTacToe()
-        cur_player = self.x_player
-        other_player = self.o_player
+    def play(self, board):
+        # Switch players if player finishes their turn
+        if self.cur_player.play(board):
+            self.cur_player, self.other_player = self.other_player, self.cur_player
 
+    def end_game(self, winner):
         while True:
             Screen.fill()
-            board.draw()
+            Screen.display_winner(winner)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
 
-            # Switch players if player finishes their turn
-            if cur_player.play(board):
-                cur_player, other_player = other_player, cur_player
-            
-            pygame.display.update()
-            
-            winner = board.has_winner()
-            if winner:
-                Screen.display_winner()
-                self.end_game()
-                break    
-
-    def end_game(self):
-        pass
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        return
 
 
 if __name__ == "__main__":
+    games = 0
+    pygame.display.set_caption("TICTACTOE")
+    board = TicTacToe()
     g = Game()
-    g.play()
+    while True:
+        # if games == 0:
+        #     g.set_players()
+        g.play(board)
+        Screen.fill()
+        board.draw()
+        pygame.display.update()
+        winner = board.has_winner()
+        if winner:
+            g.end_game(winner)
+            games += 1
+            board = TicTacToe()
+            g = Game()
+    
     
