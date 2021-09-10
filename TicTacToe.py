@@ -12,6 +12,7 @@ Goal: Create a playable Tictactoe game with an unbeatable AI using the Minimax a
 
 """
 import pygame
+from players import HumanPlayer, AIPlayer
 
 pygame.init()
 
@@ -33,24 +34,34 @@ class TicTacToe:
 
     def add_at_selected(self, symbol: str):
         if self.is_full():
-            return
+            return False
 
         x, y = self.selected_pos    
+        if (self.board[y][x] == ' '):
+            self.board[y][x] = symbol
+            self.num_empty -= 1
+            return True
+        return False
 
-        self.board[y][x] = symbol
-        self.num_empty -= 1
-
-    def add_symbol(self, symbol, x, y):
+    def add_at_i(self, symbol, i):
         if self.is_full():
-            return
+            return False
 
-        self.board[y][x] = symbol
-        self.num_empty -= 1
+        x = i % 3
+        y = i // 3
 
-    def delete_symbol(self):
-        x, y = self.selected_pos
-        self.board[y][x] = " "
-        self.num_empty += 1
+        if (self.board[y][x] == ' '):
+            self.board[y][x] = symbol
+            self.num_empty -= 1
+            return True
+        return False
+
+    def delete_symbol(self, i ):
+        x = i % 3
+        y = i // 3
+        if (self.board[y][x] != " "):
+            self.board[y][x] = " "
+            self.num_empty += 1
 
     def has_winner(self) -> str:
         """returns a string representing if there is a winner or not.
@@ -102,7 +113,7 @@ class TicTacToe:
                     continue
 
                 text = Screen.FONT.render(self.board[row][col], 1, (0,0,0))
-                text_rect = text.get_rect(center=(75+150*col, 17+150*row))
+                text_rect = text.get_rect(center=(75+150*col, 75+150*row))
                 Screen.WINDOW.blit(text,text_rect)
 
     def select(self, position):
@@ -122,7 +133,7 @@ class Screen:
     HEIGHT = 500
     WINDOW = pygame.display.set_mode((LENGTH, HEIGHT))
     BG_COLOR = (255,255,255)    #white
-    FONT = pygame.font.SysFont("msuigothic",30)
+    FONT = pygame.font.SysFont("msuigothic",130)
 
     def fill() -> None:
         """Fills the screen background with default background color"""
@@ -131,7 +142,7 @@ class Screen:
     def start_screen():
         pass
 
-    def end_screen():
+    def display_winner():
         pass
 
     def display_turn(player):
@@ -140,8 +151,8 @@ class Screen:
 
 class Game:
     def __init__(self) -> None:
-        self.x_player = None
-        self.o_player = None
+        self.x_player = HumanPlayer("X")
+        self.o_player = AIPlayer("O")
 
     def set_players(self):
         while True:
@@ -160,27 +171,23 @@ class Game:
             Screen.fill()
             board.draw()
 
-            # Commands for user inputs
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    Game.quit_game()
-
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    board.select(pos)
-
+            # Switch players if player finishes their turn
+            if cur_player.play(board):
+                cur_player, other_player = other_player, cur_player
+            
             pygame.display.update()
-    
+            
+            winner = board.has_winner()
+            if winner:
+                Screen.display_winner()
+                self.end_game()
+                break    
 
     def end_game(self):
         pass
 
-    def quit_game():
-        """Quits the game in safe state."""
-        pygame.quit()
-        quit()
-
 
 if __name__ == "__main__":
-    Game.play()
+    g = Game()
+    g.play()
     
