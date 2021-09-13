@@ -3,18 +3,21 @@ import pygame
 import time
 
 class Player:
-    def __init__(self, symbol) -> None:
-        self.symbol = symbol
-
-    def select(self,board) -> None:
+    def __init__(self) -> None:
         pass
+
+    def set_symbol(self, symbol) -> None:
+        self.symbol = symbol
 
     def play(self, board) -> bool:
         pass
 
 class HumanPlayer(Player):
-    def __init__(self, symbol) -> None:
-        super().__init__(symbol)
+    def __init__(self) -> None:
+        super().__init__()
+
+    def set_symbol(self, symbol) -> None:
+        return super().set_symbol(symbol)
 
     def select(self,board):
         pos = pygame.mouse.get_pos()
@@ -36,8 +39,11 @@ class HumanPlayer(Player):
         return False
 
 class AIPlayer(Player):
-    def __init__(self, symbol) -> None:
-        super().__init__(symbol)
+    def __init__(self) -> None:
+        super().__init__()
+
+    def set_symbol(self, symbol) -> None:
+        return super().set_symbol(symbol)
 
     def play(self, board) -> bool:
         copy = board.copy()

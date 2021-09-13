@@ -135,40 +135,103 @@ class Screen:
     WINDOW = pygame.display.set_mode((LENGTH, HEIGHT))
     BG_COLOR = (255,255,255)    #white
     FONT = pygame.font.SysFont("msuigothic",130)
+    SUBFONT = pygame.font.SysFont("arial", 70)
 
     def fill() -> None:
         """Fills the screen background with default background color"""
         Screen.WINDOW.fill(Screen.BG_COLOR)
     
-    def start_screen():
-        pass
+    def display_welcome():
+        text = Screen.SUBFONT.render("Welcome", True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, 60))
+        Screen.WINDOW.blit(text, text_rect)
+
+    def display_menu(opt1, opt2):
+        text = Screen.SUBFONT.render(opt1, True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT/2-50))
+        Screen.WINDOW.blit(text, text_rect)
+        text = Screen.SUBFONT.render(opt2, True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT/2+50))
+        Screen.WINDOW.blit(text, text_rect)
 
     def display_winner(winner:str):
-        pass
+        text = Screen.SUBFONT.render(winner + " wins!", True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT/2-50))
+        Screen.WINDOW.blit(text, text_rect)
+        text = pygame.font.SysFont("arial", 30).render("Press SPACE to play again", True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT/2+50))
+        Screen.WINDOW.blit(text, text_rect)
 
     def display_turn(player):
-        pass
+        text = pygame.font.SysFont("arial", 30).render(player.symbol + "'s TURN", True, (0,0,0))
+        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT-25))
+        Screen.WINDOW.blit(text,text_rect)
     
 
 class Game:
     def __init__(self) -> None:
-        self.player1 = HumanPlayer("X")
-        self.player2 = AIPlayer("O")
-        self.cur_player = self.player1
-        self.other_player = self.player2
+        self.player1 = HumanPlayer()
+        self.player2 = None
+        self.cur_player = None
+        self.other_player = None
 
     def set_players(self):
-        pass
-        while True:
+        while self.player2 is None:
             Screen.fill()
-            Screen.start_screen()
+            Screen.display_welcome()
+            Screen.display_menu("One Player", "Two Players")
 
-            # ask for one player or two 
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    if Screen.HEIGHT/2-70 <= pos[1] <= Screen.HEIGHT/2-20:
+                        self.player2 = AIPlayer()
+                    elif Screen.HEIGHT/2+20 <= pos[1] <= Screen.HEIGHT/2+80:
+                        self.player2 = HumanPlayer()                    
+
+            pygame.display.update()
+            
+        self.set_symbols()
+
+    def set_symbols(self):
+         while self.cur_player is None:
+            Screen.fill()
+            Screen.display_welcome()
+            Screen.display_menu("P1 choose:", "X or O")
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    ok_height = Screen.HEIGHT/2+20 <= pos[1] <= Screen.HEIGHT/2+80
+                    if pos[0] < Screen.LENGTH/2 and ok_height:
+                        self.player1.set_symbol("X")
+                        self.cur_player = self.player1
+                        self.player2.set_symbol("O")
+                        self.other_player = self.player2
+                    elif pos[0] > Screen.LENGTH/2 and ok_height:
+                        self.player1.set_symbol("O")
+                        self.other_player = self.player1
+                        self.player2.set_symbol("X")
+                        self.cur_player = self.player2
+
+            pygame.display.update()
 
     def play(self, board):
         # Switch players if player finishes their turn
         if self.cur_player.play(board):
             self.cur_player, self.other_player = self.other_player, self.cur_player
+
+    def restart(self):
+        self.cur_player = self.player1
+        self.other_player = self.player2
 
     def end_game(self, winner):
         while True:
@@ -183,24 +246,28 @@ class Game:
                     if event.key == pygame.K_SPACE:
                         return
 
+            pygame.display.update()
 
-if __name__ == "__main__":
-    games = 0
+
+def game_loop():
     pygame.display.set_caption("TICTACTOE")
     board = TicTacToe()
     g = Game()
+    g.set_players()
     while True:
-        # if games == 0:
-        #     g.set_players()
-        g.play(board)
         Screen.fill()
+        g.play(board)
         board.draw()
+        Screen.display_turn(g.cur_player)
         pygame.display.update()
         winner = board.has_winner()
         if winner:
+            time.sleep(1)
             g.end_game(winner)
-            games += 1
             board = TicTacToe()
-            g = Game()
+            g.restart()
+
+if __name__ == "__main__":
+    game_loop()
     
     
