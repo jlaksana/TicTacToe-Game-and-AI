@@ -2,12 +2,11 @@
 TicTacToe Game and AI
 
 Started: 9/8/21
-Finished:
+Finished: 9/14/21
 
 Goal: Create a playable Tictactoe game with an unbeatable AI using the Minimax algorithm.
     Implement with PyGame
     use alpha-beta pruning to optimize
-
 
 
 """
@@ -155,7 +154,12 @@ class Screen:
         Screen.WINDOW.blit(text, text_rect)
 
     def display_winner(winner:str):
-        text = Screen.SUBFONT.render(winner + " wins!", True, (0,0,0))
+        if winner == "D":
+            msg = "DRAW"
+        else:
+            msg = winner + " wins!"
+        
+        text = Screen.SUBFONT.render(msg, True, (0,0,0))
         text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT/2-50))
         Screen.WINDOW.blit(text, text_rect)
         text = pygame.font.SysFont("arial", 30).render("Press SPACE to play again", True, (0,0,0))
@@ -164,7 +168,13 @@ class Screen:
 
     def display_turn(player):
         text = pygame.font.SysFont("arial", 30).render(player.symbol + "'s TURN", True, (0,0,0))
-        text_rect = text.get_rect(center=(Screen.LENGTH/2, Screen.HEIGHT-25))
+        text_rect = text.get_rect(center=(Screen.LENGTH-70, Screen.HEIGHT-25))
+        Screen.WINDOW.blit(text,text_rect)
+
+    def display_score(scores):
+        msg = f"P1: {scores[0]}  P2: {scores[1]}  D: {scores[2]}"
+        text = pygame.font.SysFont("arial", 30).render(msg, True, (0,0,0))
+        text_rect = text.get_rect(center=(110, Screen.HEIGHT-25))
         Screen.WINDOW.blit(text,text_rect)
     
 
@@ -174,6 +184,7 @@ class Game:
         self.player2 = None
         self.cur_player = None
         self.other_player = None
+        self.score = [0,0,0]  #[P1, P2, Draws]
 
     def set_players(self):
         while self.player2 is None:
@@ -230,13 +241,27 @@ class Game:
             self.cur_player, self.other_player = self.other_player, self.cur_player
 
     def restart(self):
-        self.cur_player = self.player1
-        self.other_player = self.player2
+        if self.player1.symbol == "X":
+            self.cur_player = self.player1
+            self.other_player = self.player2
+        else:
+            self.cur_player = self.player2
+            self.other_player = self.player1
+
+    def update_score(self,winner):
+        if winner == "D":
+            self.score[2] += 1
+        elif winner == self.player1.symbol:
+            self.score[0] += 1
+        else:
+            self.score[1] += 1
 
     def end_game(self, winner):
+        self.update_score(winner)
         while True:
             Screen.fill()
             Screen.display_winner(winner)
+            Screen.display_score(self.score)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -259,6 +284,7 @@ def game_loop():
         g.play(board)
         board.draw()
         Screen.display_turn(g.cur_player)
+        Screen.display_score(g.score)
         pygame.display.update()
         winner = board.has_winner()
         if winner:
